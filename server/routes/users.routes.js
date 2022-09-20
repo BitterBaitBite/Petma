@@ -2,6 +2,7 @@ const router = require('express').Router();
 
 const sequelize = require('../db');
 const User = require('../models/User.model');
+const Friendship = require('../models/Friendship.model');
 
 /**
  * Fetch all users from de DDBB
@@ -9,10 +10,10 @@ const User = require('../models/User.model');
 router.get('/', (req, res) => {
 	// Sequelize ORM option: User.findAll()
 	sequelize
-		.query('SELECT * FROM users')
+		.query('SELECT * FROM users ORDER BY id')
 		.then(([users]) => {
 			if (!users || users.length === 0) {
-				res.status(204).json(null);
+				res.status(404).json(null);
 			}
 
 			res.status(200).json(users);
@@ -30,16 +31,73 @@ router.get('/', (req, res) => {
 router.get('/:id', (req, res) => {
 	const { id } = req.params;
 
-	// Sequelize ORM option: User.findByPk(id)
 	sequelize
-		.query('SELECT * FROM users INNER JOIN pets ON users.id=pets.owner_id WHERE users.id IN (:id)', {
+		.query(`SELECT * FROM users WHERE users.id IN (:id)`, {
 			replacements: { id: [id] },
 		})
-		.then(([user, metadata]) => {
-			console.log(user);
-
+		.then(([user]) => {
 			if (!user) {
-				res.status(204).json(null);
+				res.status(404).json(null);
+			}
+
+			res.status(200).json(user);
+		})
+		.catch(err => {
+			console.error(err);
+
+			res.status(500).json(err);
+		});
+});
+
+/**
+ * Fetch the pets for the user by it's id (primary key)
+ */
+router.get('/:id/pets', (req, res) => {
+	const { id } = req.params;
+
+	sequelize
+		.query(
+			'SELECT pets.name, pets.description FROM users \
+					INNER JOIN pets ON users.id=pets.owner_id \
+					WHERE users.id IN (:id)',
+			{
+				replacements: { id: [id] },
+			}
+		)
+		.then(([user]) => {
+			if (!user) {
+				res.status(404).json(null);
+			}
+
+			res.status(200).json(user);
+		})
+		.catch(err => {
+			console.error(err);
+
+			res.status(500).json(err);
+		});
+});
+
+/**
+ * Fetch the friends for the user by it's id
+ */
+router.get('/:id/friends', (req, res) => {
+	const { id } = req.params;
+
+	sequelize
+		.query(
+			'SELECT u1.name, u1.description FROM friendships f \
+				INNER JOIN users u1 ON u1.id=f.user1_id \
+				INNER JOIN users u2 ON u2.id=f.user2_id \
+				WHERE f.user1_id IN (:id) \
+				OR f.user2_id IN (:id)',
+			{
+				replacements: { id: [id] },
+			}
+		)
+		.then(([user]) => {
+			if (!user) {
+				res.status(404).json(null);
 			}
 
 			res.status(200).json(user);
