@@ -1,7 +1,7 @@
 const router = require('express').Router();
 
 const sequelize = require('../db');
-const Pet = require('../models/Pet.model');
+const Pet = require('../models/pet.model');
 
 router.get('/', (req, res, next) => {
 	// Pet.findAll()
