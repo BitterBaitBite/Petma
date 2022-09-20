@@ -3,7 +3,7 @@ const router = require('express').Router();
 const sequelize = require('../db');
 const Pet = require('../models/Pet.model');
 
-router.get('/', (req, res) => {
+router.get('/', (req, res, next) => {
 	// Pet.findAll()
 	sequelize
 		.query('SELECT * FROM pets')
@@ -17,19 +17,17 @@ router.get('/', (req, res) => {
 		.catch(err => {
 			console.error(err);
 
-			res.status(500).json(err);
+			next(err);
 		});
 });
 
-router.get('/:id', (req, res) => {
+router.get('/:id', (req, res, next) => {
 	const { id } = req.params;
 
 	// Pet.findByPk(id)
 	sequelize
 		.query('SELECT * FROM pets WHERE id=(:id)', { replacements: { id: [id] } })
 		.then(pet => {
-			console.log(pet);
-
 			if (!pet) {
 				res.status(204).json();
 			}
@@ -39,21 +37,18 @@ router.get('/:id', (req, res) => {
 		.catch(err => {
 			console.error(err);
 
-			res.status(500).json(err);
+			next(err);
 		});
 });
 
-router.get('/:owner_id', (req, res) => {
+router.get('/:owner_id', (req, res, next) => {
 	const { owner_id } = req.params;
-	console.log('---------------------------------------------------');
 
 	// Pet.findAll({ where: { owner_id: owner_id } })
 	sequelize
 		.query('SELECT * FROM pets WHERE owner_id=(:owner_id)', { replacements: { owner_id: [owner_id] } })
 		.then(results => {
 			const pets = results[0];
-
-			console.log('result', results, 'pets', pets);
 
 			if (!pets || pets.length === 0) {
 				res.status(204).json();
@@ -64,7 +59,7 @@ router.get('/:owner_id', (req, res) => {
 		.catch(err => {
 			console.error(err);
 
-			res.status(500).json(err);
+			next(err);
 		});
 });
 

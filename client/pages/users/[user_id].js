@@ -1,72 +1,81 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import userService from '../../services/users.service';
+import { Spinner } from '../../components/Utils/Spinner';
+import styled from 'styled-components';
+import { ErrorToast } from '../../components/Utils/ErrorToast';
+import SocialList from '../../components/UI/SocialList';
+import ProfileBanner from '../../components/UI/ProfileBanner';
+import ProfileUserData from '../../components/UI/ProfileUserData';
 
 export default function UsersList() {
-	const [user, setUser] = useState({});
-	const [pets, setPets] = useState([]);
-	const [friends, setFriends] = useState([]);
-	const [isLoaded, setIsLoaded] = useState(false);
-
 	const router = useRouter();
 	const { user_id } = router.query;
 
+	/**
+	 * User data is stored in the state, as well as a loading status for it and an error object in case of failure
+	 */
+	const [user, setUser] = useState({});
+	const [isLoaded, setIsLoaded] = useState(false);
+	const [error, setError] = useState();
+
 	useEffect(() => {
 		getUserData();
-	}, [user_id]);
+	}, []);
 
 	const getUserData = () => {
-		const getUser = userService.getUserById(user_id);
-		const getPets = userService.getUserPetsById(user_id);
-		const getFriends = userService.getUserFriendsById(user_id);
+		userService
+			.getUserById(user_id)
+			.then(({ data }) => {
+				setUser(data);
 
-		Promise.all([getUser, getPets, getFriends])
-			.then(([user, pets, friends]) => {
-				console.log(pets.data);
-				setUser(user.data[0]);
-				setPets(pets.data);
-				setFriends(friends.data);
 				setIsLoaded(true);
 			})
 			.catch(err => {
 				console.log(err);
+
 				setIsLoaded(null);
+				setError(err);
 			});
 	};
 
+	/**
+	 *  This function could be useful in case we wanted the data splited (with separated states)
+	 */
+	// const getUserData = () => {
+	// 	const getUser = userService.getUserById(user_id);
+	// 	const getPets = userService.getUserPetsById(user_id);
+	// 	const getFriends = userService.getUserFriendsById(user_id);
+
+	// 	Promise.all([getUser, getPets, getFriends])
+	// 		.then(([user, pets, friends]) => {
+	// 			setUser(user.data[0]);
+	// 			setPets(pets.data);
+	// 			setFriends(friends.data);
+	// 			setIsLoaded(true);
+	// 		})
+	// 		.catch(err => {
+	// 			console.log(err);
+	// 			setIsLoaded(null);
+	// 		});
+	// };
+
 	return (
 		<section style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column' }}>
-			{isLoaded !== null ? (
-				user ? (
-					<div>
-						<div>{user.name}</div>
-						<div>{user.description}</div>
-					</div>
-				) : (
-					<div>This user have no data yet</div>
-				)
-			) : (
-				<div>There were an error retrieving the user data</div>
+			<ProfileBanner />
+
+			{isLoaded !== null && (
+				<>
+					{isLoaded && user.length !== 0 ? <ProfileUserData user={user} /> : <Spinner />}
+					<div>{isLoaded && user.length > 1 ? <SocialList user={user} /> : <Spinner />}</div>
+				</>
 			)}
 
-			{isLoaded !== null ? (
-				pets && pets.length !== 0 ? (
-					pets.map((pet, key) => <>{pet.name}</>)
-				) : (
-					<div>This user have no pets yet</div>
-				)
-			) : (
-				<div>There were an error retrieving the data</div>
-			)}
-
-			{isLoaded !== null ? (
-				friends && friends.length !== 0 ? (
-					friends.map((friend, key) => <>{friend.name}</>)
-				) : (
-					<div>This user have no friends yet</div>
-				)
-			) : (
-				<div>There were an error retrieving the data</div>
+			{error && (
+				<ErrorToast error={error} closeToast={() => setError(false)}>
+					<p>We are sorry!</p>
+					<p>There was an error retrieving friends and pets for you</p>
+				</ErrorToast>
 			)}
 		</section>
 	);

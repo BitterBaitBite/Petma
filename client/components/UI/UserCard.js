@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import styled from 'styled-components';
+import UserInfoContainer from './UserInfoContainer';
 
 const HoverLink = styled.a`
 	display: block;
@@ -9,44 +10,38 @@ const HoverLink = styled.a`
 	&:focus,
 	&:active {
 		background: #fdf9f7;
-		border-bottom: 1px #e6e4e7;
+		border-bottom: 2px solid #e6e4e7;
 	}
+`;
+
+const UserCardContainer = styled.div`
+	display: flex;
+	padding: 16px;
+	gap: 12px;
+	height: 124px;
+`;
+
+const UserIconContainer = styled.div`
+	width: 26px;
+`;
+
+const UserIconImage = styled.img`
+	width: 26px;
+	height: 26px;
+	object-fit: cover;
 `;
 
 export default function UserCard({ user }) {
 	return (
 		<Link href={`/users/${user.id}`} passHref>
-			<HoverLink style={{ display: 'block', width: '100%' }}>
-				<div style={{ display: 'flex', padding: 16, gap: 12, height: 124 }}>
-					<div style={{ width: '26px' }}>
-						<img src="/profile-icon.png" style={{ width: '26px', height: '26px', objectFit: 'cover' }} />
-					</div>
+			<HoverLink>
+				<UserCardContainer>
+					<UserIconContainer>
+						<UserIconImage src="/profile-icon.png" />
+					</UserIconContainer>
 
-					<div
-						style={{
-							display: 'flex',
-							flexDirection: 'column',
-							alignItems: 'flex-start',
-							padding: '0px',
-							gap: '4px',
-						}}
-					>
-						<h2
-							style={{
-								margin: 0,
-								padding: 0,
-								color: '#A09BA3',
-								fontWeight: 400,
-								fontSize: 16,
-							}}
-						>
-							{user.name}
-						</h2>
-						<p style={{ color: '#1B141F', fontWeight: 400, fontSize: 16, fontStyle: 'normal', margin: 0 }}>
-							{user.description}
-						</p>
-					</div>
-				</div>
+					<UserInfoContainer user={user} />
+				</UserCardContainer>
 			</HoverLink>
 		</Link>
 	);

@@ -1,13 +1,11 @@
 const router = require('express').Router();
 
 const sequelize = require('../db');
-const User = require('../models/User.model');
-const Friendship = require('../models/Friendship.model');
 
 /**
  * Fetch all users from de DDBB
  */
-router.get('/', (req, res) => {
+router.get('/', (req, res, next) => {
 	// Sequelize ORM option: User.findAll()
 	sequelize
 		.query('SELECT * FROM users ORDER BY id')
@@ -21,14 +19,56 @@ router.get('/', (req, res) => {
 		.catch(err => {
 			console.error(err);
 
-			res.status(500).json(err);
+			next(err);
 		});
 });
 
 /**
- * Fetch one user by it's id (primary key)
+ * Fetch one user with all it's pets and friends by it's id (primary key)
  */
-router.get('/:id', (req, res) => {
+router.get('/:id', (req, res, next) => {
+	const { id } = req.params;
+
+	sequelize
+		.query(
+			'(SELECT u.name, u.description FROM users u		\
+			WHERE u.id=(:id)) 														\
+			UNION ALL 																		\
+			(SELECT u2.name, u2.description FROM users u 	\
+			JOIN friendships f ON f.user1_id=u.id 				\
+			JOIN users u2 ON u2.id=f.user2_id 						\
+			WHERE u.id=(:id)) 														\
+			UNION ALL 																		\
+			(SELECT u2.name, u2.description FROM users u 	\
+			JOIN friendships f ON f.user2_id=u.id 				\
+			JOIN users u2 ON u2.id=f.user1_id 						\
+			WHERE u.id=(:id)) 														\
+			UNION ALL 																		\
+			(SELECT p.name, p.description FROM pets p 		\
+			INNER JOIN users u ON u.id=p.owner_id 				\
+			WHERE p.owner_id=(:id))',
+			{
+				replacements: { id: [id] },
+			}
+		)
+		.then(([user]) => {
+			if (!user) {
+				res.status(404).json(null);
+			}
+
+			res.status(200).json(user);
+		})
+		.catch(err => {
+			console.error(err);
+
+			next(err);
+		});
+});
+
+/**
+ * Fetch one user by it's id (Currently not being used)
+ */
+router.get('/:id/user', (req, res, next) => {
 	const { id } = req.params;
 
 	sequelize
@@ -45,14 +85,14 @@ router.get('/:id', (req, res) => {
 		.catch(err => {
 			console.error(err);
 
-			res.status(500).json(err);
+			next(err);
 		});
 });
 
 /**
- * Fetch the pets for the user by it's id (primary key)
+ * Fetch the pets for the user by it's id (Currently not being used)
  */
-router.get('/:id/pets', (req, res) => {
+router.get('/:id/pets', (req, res, next) => {
 	const { id } = req.params;
 
 	sequelize
@@ -74,23 +114,27 @@ router.get('/:id/pets', (req, res) => {
 		.catch(err => {
 			console.error(err);
 
-			res.status(500).json(err);
+			next(err);
 		});
 });
 
 /**
- * Fetch the friends for the user by it's id
+ * Fetch the friends for the user by it's id (Currently not being used)
  */
-router.get('/:id/friends', (req, res) => {
+router.get('/:id/friends', (req, res, next) => {
 	const { id } = req.params;
 
 	sequelize
 		.query(
-			'SELECT u1.name, u1.description FROM friendships f \
-				INNER JOIN users u1 ON u1.id=f.user1_id \
-				INNER JOIN users u2 ON u2.id=f.user2_id \
-				WHERE f.user1_id IN (:id) \
-				OR f.user2_id IN (:id)',
+			'(SELECT u2.name, u2.description FROM users u \
+			JOIN friendships f ON f.user1_id=u.id 				\
+			JOIN users u2 ON u2.id=f.user2_id 						\
+			WHERE u.id=(:id)) 														\
+			UNION ALL 																		\
+			(SELECT u2.name, u2.description FROM users u 	\
+			JOIN friendships f ON f.user2_id=u.id 				\
+			JOIN users u2 ON u2.id=f.user1_id 						\
+			WHERE u.id=(:id))',
 			{
 				replacements: { id: [id] },
 			}
@@ -105,14 +149,14 @@ router.get('/:id/friends', (req, res) => {
 		.catch(err => {
 			console.error(err);
 
-			res.status(500).json(err);
+			next(err);
 		});
 });
 
 /**
- * User direct creation (temp.just for developing)
+ * User direct creation (User creation should be auth/signup controlled in the future)
  */
-router.post('/', (req, res) => {
+router.post('/', (req, res, next) => {
 	const { name, description } = req.body;
 
 	if (!name) {
@@ -130,14 +174,14 @@ router.post('/', (req, res) => {
 		.catch(err => {
 			console.error(err);
 
-			res.status(500).json(err);
+			next(err);
 		});
 });
 
 /**
- * Update a selected by id user
+ * Update a user selected by id with the request body data
  */
-router.put('/:id', (req, res) => {
+router.put('/:id', (req, res, next) => {
 	const { id } = req.params;
 	const { name, description } = req.body;
 
@@ -152,14 +196,14 @@ router.put('/:id', (req, res) => {
 		.catch(err => {
 			console.error(err);
 
-			res.status(500).json(err);
+			next(err);
 		});
 });
 
 /**
  * Delete a user from the table by id
  */
-router.delete('/:id', (req, res) => {
+router.delete('/:id', (req, res, next) => {
 	const { id } = req.params;
 
 	// Sequelize ORM option: User.destroy({ where: { id } })

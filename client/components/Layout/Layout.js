@@ -6,22 +6,10 @@ const Main = styled.main`
 	font-size: 16px;
 `;
 
-const LogoLink = styled.a`
-	display: flex;
-	justify-content: center;
-	align-content: center;
-`;
-
 export default function Layout({ children }) {
 	return (
 		<>
-			<Header>
-				<Link href="/" passHref>
-					<LogoLink>
-						<img src="/logo-petma.png" alt="Petma Logo" width="20%" height="auto" />
-					</LogoLink>
-				</Link>
-			</Header>
+			<Header />
 
 			<Main>{children}</Main>
 		</>
