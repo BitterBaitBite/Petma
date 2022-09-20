@@ -26,7 +26,7 @@ const User = sequelize.define(
 User.hasMany(Pet);
 Pet.belongsTo(User, { foreignKey: 'owner_id' });
 
-User.belongsToMany(User, { through: Friendship, as: 'parents', foreignKey: 'user1_id' });
-User.belongsToMany(User, { through: Friendship, as: 'children', foreignKey: 'user2_id' });
+// User.belongsToMany(User, { through: Friendship, as: 'parents', foreignKey: 'user1_id' });
+// User.belongsToMany(User, { through: Friendship, as: 'children', foreignKey: 'user2_id' });
 
 module.exports = User;
