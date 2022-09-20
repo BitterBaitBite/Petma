@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const bcryptSalt = 10;
 
-const User = require('./../models/User.model');
+const User = require('./../models/user.model');
 const { isAuthenticated } = require('../middleware/jwt.middleware');
 
 /** User register/creation */
