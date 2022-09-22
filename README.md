@@ -40,3 +40,13 @@ The server is working as a REST API, and so it has several endpoints to get some
 In order to run the client you have to install it's dependencies with `npm install` and then create a `.env.local` file with a single environment variable for the URI or domain of the REST API (you may also hardcode it...). This environment variable is `NEXT_PUBLIC_REST_API_URI`.
 
 To see the frontend client on your local, simply run `npm run dev`!
+
+## Future features
+
+ - Fully responsive for multiple devices
+ - User authentication
+ - User profile
+ - Pet management from user profile
+ - Option to send friend requests
+ - Option to remove friends from user profile
+ - Pet pages for cuteness and details
